@@ -1,0 +1,26 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Logs
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# DB
+*.db
+data/
+db_data/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Virtual Environment
+.venv/
+env/
+venv/   
