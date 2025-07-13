@@ -1,4 +1,4 @@
-{{ config(materialized='view') }}
+{{ config(materialized='view') }};
 
 SELECT
     id,
@@ -18,4 +18,4 @@ WHERE
     -- Filter out messages with no text AND no media
     (text IS NOT NULL AND TRIM(text) <> '')
     OR has_photo = TRUE
-    OR has_document = TRUE
+    OR has_document = TRUE;
