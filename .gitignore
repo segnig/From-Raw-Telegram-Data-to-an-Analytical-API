@@ -24,3 +24,10 @@ Thumbs.db
 .venv/
 env/
 venv/   
+
+# session files
+*.session
+*.session-journal
+
+dbt/kara_dbt_project/target/
+dbt/kara_dbt_project/dbt_packages/
