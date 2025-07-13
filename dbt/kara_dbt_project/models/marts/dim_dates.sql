@@ -1,4 +1,4 @@
-{{ config(materialized='table') }}
+{{ config(materialized='table') }};
 
 WITH base AS (
     SELECT DISTINCT CAST(date AS DATE) AS date
@@ -11,4 +11,4 @@ SELECT
     EXTRACT(MONTH FROM date) AS month,
     EXTRACT(YEAR FROM date) AS year,
     TO_CHAR(date, 'Day') AS weekday
-FROM base
+FROM base;
