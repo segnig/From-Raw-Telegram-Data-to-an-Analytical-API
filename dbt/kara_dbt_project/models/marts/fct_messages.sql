@@ -1,4 +1,4 @@
-{{ config(materialized='table') }};
+{{ config(materialized='table') }}
 
 SELECT
     stg.id,
@@ -13,4 +13,4 @@ SELECT
     dt.date AS date_key
 FROM {{ ref('stg_telegram_messages') }} stg
 LEFT JOIN {{ ref('dim_channels') }} ch ON stg.channel = ch.channel_name
-LEFT JOIN {{ ref('dim_dates') }} dt ON stg.message_date = dt.date;
+LEFT JOIN {{ ref('dim_dates') }} dt ON stg.message_date = dt.date

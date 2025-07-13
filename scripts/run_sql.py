@@ -14,7 +14,7 @@ conn = psycopg2.connect(
 
 cur = conn.cursor()
 
-with open("sql/create_table.sql", "r") as f:
+with open("sql/object_detections.sql", "r") as f:
     cur.execute(f.read())
 
 conn.commit()
