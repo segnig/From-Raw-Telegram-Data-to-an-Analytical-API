@@ -10,3 +10,5 @@ dagster-webserver
 dotenv
 pandas
 numpy
+
+dbt-postgres
