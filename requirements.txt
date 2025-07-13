@@ -12,3 +12,4 @@ pandas
 numpy
 
 dbt-postgres
+ultralytics

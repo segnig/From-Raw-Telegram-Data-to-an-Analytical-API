@@ -33,4 +33,7 @@ models:
   kara_dbt_project:
     # Config indicated by + and applies to all files under models/example/
     marts:
+      +materialized: table
+    
+    staging:
       +materialized: view
