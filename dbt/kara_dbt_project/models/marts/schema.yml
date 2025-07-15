@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: fct_top_products
+    description: "Summarized count of product mentions from Telegram messages."
+    columns:
+      - name: product
+        tests: [not_null, unique]
+      - name: mention_count
+        tests: [not_null]
+
+  - name: fct_channel_activity
+    description: "Aggregated metrics on message activity per Telegram channel."
+    columns:
+      - name: channel
+        tests: [not_null, unique]
+      - name: post_count
+        tests: [not_null]
+      - name: avg_message_length
+        tests: [not_null]
