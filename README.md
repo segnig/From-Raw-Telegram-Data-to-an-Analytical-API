@@ -1,203 +1,217 @@
-# 📊 Ethiopian Medical Data Platform — Kara Solutions
+# 📊 From Raw Telegram Data to Analytical API | Kara Solutions
 
-## 🧠 Business Need
+## 🧠 Overview
 
-As a Data Engineer at **Kara Solutions**, your mission is to design a robust and scalable data platform that generates actionable insights from **public Telegram channels** related to **Ethiopian medical businesses**.
+This project builds a robust **Data Engineering Pipeline** for extracting and analyzing health product-related data from public **Ethiopian medical Telegram channels**. Developed at **Kara Solutions**, the goal is to uncover insights that help stakeholders track trends in medical products, vendor activity, pricing, and visual content through object detection.
 
-By building an end-to-end data pipeline, this platform aims to answer key business questions:
-
-* 🔟 What are the **top 10 most frequently mentioned** medical products or drugs?
-* 📉 How does the **price or availability** of a product vary across channels?
-* 🖼️ Which channels share the most **visual content** (e.g., pills, creams)?
-* 📆 What are the **daily and weekly trends** in posting volume?
-
-This solution leverages a **modern ELT architecture** to extract Telegram data, clean and transform it using `dbt`, enrich it using `YOLOv8` object detection on images, and finally serve insights through a FastAPI-based analytical API.
+The pipeline spans **ETL/ELT architecture**, data modeling, enrichment via **YOLOv8**, and serving analytics via **FastAPI**, orchestrated end-to-end using **Dagster**.
 
 ---
 
-## 🧱 Project Architecture
+## 📌 Table of Contents
 
-```
-Raw Telegram Data (JSON + Images)
-                ↓
-            Data Lake
-                ↓
-PostgreSQL Data Warehouse (via loader scripts)
-                ↓
-   dbt (Staging → Marts in Star Schema)
-                ↓
-    YOLOv8 Image Object Detection
-                ↓
-      Analytical API (FastAPI)
-                ↓
-        Business Intelligence
-```
+- [Overview](#-overview)
+- [Business Questions](#-business-questions)
+- [Project Architecture](#-project-architecture)
+- [Technologies Used](#-technologies-used)
+- [Project Structure](#-project-structure)
+- [Setup Instructions](#-setup-instructions)
+- [API Usage](#-api-usage)
+- [Database Schema](#-database-schema)
+- [Learnings](#-learnings)
+- [Deliverables](#-deliverables)
+- [Author](#-author)
+- [License](#-license)
 
 ---
 
-## 🚀 Key Technologies
+## ❓ Business Questions
 
-| Component        | Tool/Framework       | Purpose                                     |
-| ---------------- | -------------------- | ------------------------------------------- |
-| Data Extraction  | Telethon             | Scrape public Telegram messages and media   |
-| Data Storage     | Local JSON/Image     | Store raw structured and unstructured data  |
-| Data Warehouse   | PostgreSQL           | Central repository for transformed data     |
-| Transformation   | dbt                  | Build staging and mart models (star schema) |
-| Enrichment       | YOLOv8 (Ultralytics) | Detect objects in medical-related images    |
-| API Layer        | FastAPI              | Expose insights via analytical endpoints    |
-| Orchestration    | Dagster              | Schedule and monitor data pipeline jobs     |
-| Containerization | Docker               | Reproducible environment and services       |
+The platform answers:
+
+1. 💊 What are the **top 10 most frequently mentioned** medical products or drugs?
+2. 🏷 How do **prices or availability** of products vary across different Telegram channels?
+3. 🖼 Which channels have the most **visual content** (e.g., images of pills, creams)?
+4. 📆 What are the **daily/weekly trends** in health-related message volume?
 
 ---
 
-## 🧩 Data Model Design
+## 🏗 Project Architecture
 
-The project follows a **dimensional modeling** approach:
-
-* **Fact Tables**:
-
-  * `fct_messages`: One row per Telegram message with keys and metrics.
-  * `fct_image_detections`: One row per object detection result (linked to `fct_messages`).
-* **Dimension Tables**:
-
-  * `dim_channels`: Metadata about Telegram channels.
-  * `dim_dates`: Calendar dimension for temporal aggregation.
-
----
-
-## ✅ Project Setup Tasks (Task 0)
-
-* 🐳 Containerized PostgreSQL & Python using Docker.
-* 🔐 `.env` file for secret management (Telegram API, DB creds).
-* 📦 `requirements.txt` for reproducible dependency setup.
-* 📁 Modular project folder structure with clear separation of concerns.
+```mermaid
+flowchart TD
+    A[Telegram Channels] -->|Telethon Scraper| B[Raw JSON Files]
+    B --> C[PostgreSQL: Raw Tables]
+    C -->|dbt Transformations| D[Staging + Fact/Dim Tables]
+    B --> E[YOLOv8 Image Classifier]
+    E --> D
+    D -->|Query Engine| F[FastAPI Server]
+    F -->|API| G[Business Reports/UI]
+    all -->|Dagster Jobs| Scheduler
+````
 
 ---
 
-## 📥 Task 1 — Data Scraping & Loading
+## 🧰 Technologies Used
 
-* Scrape data using Telethon from:
-
-  * [Chemed](https://t.me/lobelia4cosmetics)
-  * [Tikvah Pharma](https://t.me/tikvahpharma)
-* Organize raw data in:
-  `data/raw/telegram_messages/YYYY-MM-DD/channel_name.json`
-* Collect and store media images for YOLO processing.
-* Log errors and channel status for monitoring.
-
----
-
-## 🔄 Task 2 — Data Modeling & Transformation
-
-* Load raw JSON into PostgreSQL under the `raw` schema.
-* Initialize `dbt` and create:
-
-  * `staging` models to clean and structure the raw data.
-  * `mart` models to implement star schema (facts + dimensions).
-* Implement built-in and custom tests:
-
-  * `not_null`, `unique`, and semantic data rules.
-* Auto-generate documentation with `dbt docs`.
+| Category                | Stack / Tools                 |
+| ----------------------- | ----------------------------- |
+| Telegram Scraping       | Telethon                      |
+| Data Storage            | PostgreSQL                    |
+| Data Modeling           | dbt                           |
+| Object Detection        | YOLOv8 (Ultralytics)          |
+| API Development         | FastAPI, Uvicorn              |
+| Orchestration           | Dagster                       |
+| Containerization        | Docker, Docker Compose        |
+| Secrets Management      | python-dotenv                 |
+| Documentation & Testing | dbt Docs, dbt Tests, Pydantic |
 
 ---
 
-## 🧠 Task 3 — Data Enrichment with YOLOv8
+## 🗂 Project Structure
 
-* Use `ultralytics` YOLOv8 to detect objects (e.g., bottles, boxes) in message images.
-* Parse and structure detections into a `fct_image_detections` table:
-
-  ```sql
-  Columns:
-  - message_id (FK to fct_messages)
-  - detected_class
-  - confidence_score
-  ```
-* Link visual data to textual insights.
-
----
-
-## 🌐 Task 4 — FastAPI Analytical API
-
-Expose insights via RESTful endpoints:
-
-* `/api/reports/top-products`: Top mentioned products.
-* `/api/channels/{channel}/activity`: Posting activity by channel.
-* `/api/search/messages?query=...`: Keyword search across messages.
-
-Use Pydantic for data validation and schema consistency.
-
----
-
-## ⏱️ Task 5 — Pipeline Orchestration (Dagster)
-
-* Use `Dagster` to define ops and jobs for:
-
-  * `scrape_telegram_data`
-  * `load_raw_to_postgres`
-  * `run_dbt_transformations`
-  * `run_yolo_enrichment`
-* Launch with `dagster dev` for visual monitoring.
-* Add daily or hourly scheduling as needed.
-
----
-
-## 📚 Learning Outcomes
-
-* ELT pipeline design & implementation.
-* Advanced data modeling with `dbt`.
-* Integration of structured and unstructured data.
-* API development and pipeline orchestration.
-* Real-world production practices (testing, logging, secrets management).
-
----
-
-## 📅 Timeline & Milestones
-
-| Task     | Status         | Deadline                |
-| -------- | -------------- | ----------------------- |
-| Task 0–2 | ✅ Completed    | July 12, 2025 (Interim) |
-| Task 3–5 | 🔄 In Progress | July 15, 2025 (Final)   |
-
----
-
-## 👨‍🏫 Mentors
-
-* Mahlet
-* Rediet
-* Kerod
-* Rehmet
-
----
-
-## 📌 Notes
-
-* All credentials are managed securely via `.env`.
-* This project is reproducible using Docker and follows IaC principles.
-* Refer to the `/docs` directory or `dbt docs serve` for full documentation.
-
----
-
-## 📂 Repository Structure (Example)
-
-```
+```bash
+.
 ├── data/
-│   ├── raw/
-│   └── processed/
-├── dbt/
-│   └── kara_dbt_project/
-├── scripts/
-│   ├── scrape.py
-│   ├── detect_objects.py
-│   └── run_pipeline.sh
-├── api/
+│   ├── raw/                      # JSON files: raw telegram messages
+│   └── images/                   # Scraped image files for YOLO
+├── dagster_pipeline/            # Dagster job & op definitions
+├── dbt_project/                 # dbt models, seeds, docs, tests
+├── fastapi_app/
 │   ├── main.py
+│   ├── database.py
 │   ├── schemas.py
 │   └── crud.py
-├── dagster_pipeline/
-│   ├── jobs.py
-│   └── ops.py
-├── Dockerfile
-├── docker-compose.yml
-├── .env
-└── requirements.txt
+├── Dockerfile                   # Docker image for FastAPI
+├── docker-compose.yml           # PostgreSQL + FastAPI + Dagster
+├── .env                         # Secrets & config
+├── requirements.txt             # Python packages
+└── README.md
+```
+
+---
+
+## ⚙️ Setup Instructions
+
+### 1. 🔐 Environment Setup
+
+Create a `.env` file:
+
+```env
+TELEGRAM_API_ID=your_api_id
+TELEGRAM_API_HASH=your_api_hash
+DB_HOST=postgres
+DB_PORT=5432
+DB_NAME=telegram_data
+DB_USER=postgres
+DB_PASSWORD=your_password
+```
+
+> ❗ Note: Add `.env` to `.gitignore`
+
+---
+
+### 2. 🐳 Docker + Postgres Setup
+
+```bash
+docker-compose up --build
+```
+
+### 3. 🔗 DBT Initialization
+
+```bash
+cd dbt_project
+dbt init
+dbt build
+dbt docs generate
+```
+
+---
+
+### 4. 🚀 Run Dagster UI
+
+```bash
+dagster dev
+```
+
+Dagster UI: [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 📡 API Usage (via FastAPI)
+
+Start the API:
+
+```bash
+uvicorn fastapi_app.main:app --reload
+```
+
+### 🔎 Endpoints
+
+| Endpoint                                 | Description                                 |
+| ---------------------------------------- | ------------------------------------------- |
+| `/api/reports/top-products?limit=10`     | Top N frequently mentioned medical products |
+| `/api/channels/{channel_name}/activity`  | Posting activity for a channel              |
+| `/api/search/messages?query=paracetamol` | Search for messages containing a keyword    |
+
+Swagger Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+---
+
+## 🧱 Database Schema
+
+### ⭐ Star Schema
+
+* **dim\_channels**
+  `channel_id`, `channel_name`, `category`, `scraped_date`
+
+* **dim\_dates**
+  `date_id`, `year`, `month`, `week`, `weekday`
+
+* **fct\_messages**
+  `message_id`, `channel_id`, `date_id`, `message_text`, `has_image`, `word_count`
+
+* **fct\_image\_detections**
+  `message_id`, `object_class`, `confidence_score`
+
+
+---
+
+## 📘 Learnings
+
+* ✅ Modular dbt models make transformation logic maintainable
+* 🧠 Using YOLOv8 to enrich structured data with visual insights was effective
+* ⚙️ Dagster's UI and job orchestration made debugging and scheduling intuitive
+* 🔐 Managing secrets with `.env` and containerization guarantees reproducibility
+
+---
+
+## 📤 Deliverables
+
+* ✅ Full DAG of the data pipeline in Dagster
+* ✅ dbt project with:
+
+  * Raw → Staging → Marts model layers
+  * Documentation and tests
+* ✅ FastAPI endpoints answering business questions
+* ✅ YOLOv8 image enrichment logic
+* ✅ Dockerized, reproducible environment
+* ✅ GitHub repository
+* ✅ Report + diagrams
+
+---
+
+## 👨‍💻 Author
+
+**Segni Girma**
+🌍 Adama, Ethiopia
+📫 Email: \[[segnigirma11@gmail.com](mailto:segnigirma11@gmail.com)]
+🔗 LinkedIn: [linkedin.com/in/validresults](https://linkedin.com/in/validresults)
+
+---
+
+## 🪪 License
+
+This project is licensed under the [MIT License](./LICENSE).
+
 ```
